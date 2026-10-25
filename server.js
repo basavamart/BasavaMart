@@ -80,6 +80,27 @@ io.on('connection', (socket) => {
   });
 });
 
+
+// Serve the built React frontend from backend/dist
+const frontendPath = path.join(__dirname, 'dist');
+
+app.use(express.static(frontendPath));
+
+// React Router fallback for frontend routes
+app.get('*', (req, res, next) => {
+  if (
+    req.path.startsWith('/api/') ||
+    req.path.startsWith('/uploads/')
+  ) {
+    return next();
+  }
+
+  res.sendFile(path.join(frontendPath, 'index.html'), (err) => {
+    if (err) next(err);
+  });
+});
+
+
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/basava-mart')
   .then(() => {
