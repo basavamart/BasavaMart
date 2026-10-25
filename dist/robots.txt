@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /member
+Disallow: /cart
+Disallow: /checkout
+Disallow: /my-orders
+Disallow: /profile
+Disallow: /membership
+Disallow: /login
+Disallow: /auth/callback
+Disallow: /vendor-form
+Disallow: /mini
+
+# TODO: Confirm whether /mini should remain disallowed.
+Sitemap: https://basavamart.com/sitemap.xml

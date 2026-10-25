@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://basavamart.com/</loc>
+  </url>
+  <url>
+    <loc>https://basavamart.com/products</loc>
+  </url>
+</urlset>
+<!-- TODO: Product pages (/products/:id) need dynamic sitemap generation from the backend, which is out of scope. -->
