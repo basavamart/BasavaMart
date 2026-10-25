@@ -167,7 +167,7 @@ async function getInvoiceDetails() {
       companyName: 'Basava Mart',
       address: 'Sy No 97/98 Adur Village, Virgonagar Post, Bidarahalli Hobli, Bengaluru East, Taluk Bangalore 560045',
       gstin: '29AKRPB0846N1ZN',
-      email: 'prashanth.utsav@gmail.com',
+      email: 'info@basavamart.com',
       website: 'www.basavamart.com',
       phone: '98441 92551',
       ...(values.invoiceDetails || {}),
