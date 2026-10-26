@@ -71,6 +71,21 @@ const money = (value, supportsRupee = false) => `${supportsRupee ? '\u20B9' : 'R
 
 const safeString = value => typeof value === 'string' ? value.trim() : '';
 
+function normalizeProductUrl(value) {
+  const productUrl = safeString(value);
+  if (!productUrl) return '';
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(productUrl);
+  } catch {
+    throw new Error('Product link must be a valid HTTP or HTTPS URL');
+  }
+  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+    throw new Error('Product link must be a valid HTTP or HTTPS URL');
+  }
+  return parsedUrl.toString();
+}
+
 function normalizeQuotation(body) {
   if (!body || !Array.isArray(body.items) || body.items.length === 0) {
     throw new Error('Add at least one quotation item');
@@ -86,6 +101,7 @@ function normalizeQuotation(body) {
     return {
       productId: safeString(item.productId),
       variantId: safeString(item.variantId),
+      productUrl: normalizeProductUrl(item.productUrl),
       image: safeString(item.image),
       productName,
       variantName: safeString(item.variantName),
@@ -131,6 +147,8 @@ function drawCell(doc, x, y, width, height, text, options = {}) {
       valign: 'center',
       lineBreak: true,
       ellipsis: true,
+      link: options.link,
+      underline: Boolean(options.link),
     });
 }
 
@@ -141,13 +159,13 @@ function drawSectionTitle(doc, text, x, y, width) {
 }
 
 function tableColumns(pageWidth) {
-  const widths = [29, 57, 215, 45, 75, 40, 85];
+  const widths = [27, 82, 48, 174, 42, 68, 35, 71];
   const scale = pageWidth / widths.reduce((sum, width) => sum + width, 0);
   return widths.map(width => width * scale);
 }
 
 function drawItemsHeader(doc, x, y, widths) {
-  const labels = ['Sr. No.', 'HSN Code', 'Item Description', 'Qty.\n(Nos.)', 'Unit Rate\n(Rs.)', 'Unit', 'Amount\n(Rs.)'];
+  const labels = ['Sr. No.', 'Product details', 'HSN Code', 'Item Description', 'Qty.\n(Nos.)', 'Unit Rate\n(Rs.)', 'Unit', 'Amount\n(Rs.)'];
   let cursor = x;
   labels.forEach((label, index) => {
     drawCell(doc, cursor, y, widths[index], 29, label, { bold: true, align: index < 3 ? 'left' : 'center', fontSize: 8 });
@@ -315,8 +333,13 @@ async function writeQuotationPdf(quote) {
   const drawLine = (item, index) => {
     const description = [item.productName, item.variantName].filter(Boolean).join(' — ');
     doc.font(doc._qtFonts.regular).fontSize(8);
-    const descriptionHeight = doc.heightOfString(description, { width: columns[2] - 8 });
-    const rowHeight = Math.max(22, descriptionHeight + 8);
+    const descriptionHeight = doc.heightOfString(description, { width: columns[3] - 8 });
+    doc.fontSize(6.5);
+    const productLinkLabel = item.productUrl ? 'Click Here to view product details' : '';
+    const productLinkHeight = productLinkLabel
+      ? doc.heightOfString(productLinkLabel, { width: columns[1] - 8 })
+      : 0;
+    const rowHeight = Math.max(22, descriptionHeight + 8, productLinkHeight + 8);
     if (y + rowHeight > doc.page.height - 260) {
       doc.addPage();
       y = drawDocumentHeader(doc, quote, company, true);
@@ -324,6 +347,7 @@ async function writeQuotationPdf(quote) {
     }
     const values = [
       String(index + 1),
+      productLinkLabel,
       item.hsnCode || '',
       description,
       item.quantity.toLocaleString('en-IN'),
@@ -334,9 +358,11 @@ async function writeQuotationPdf(quote) {
     let x = left;
     values.forEach((value, columnIndex) => {
       drawCell(doc, x, y, columns[columnIndex], rowHeight, value, {
-        bold: columnIndex === 2 || columnIndex === 4 || columnIndex === 6,
-        align: columnIndex === 4 || columnIndex === 6 ? 'right' : (columnIndex === 2 ? 'left' : 'center'),
-        fontSize: 8,
+        bold: columnIndex === 3 || columnIndex === 5 || columnIndex === 7,
+        align: columnIndex === 5 || columnIndex === 7 ? 'right' : (columnIndex === 3 ? 'left' : 'center'),
+        fontSize: columnIndex === 1 ? 6.5 : 8,
+        color: columnIndex === 1 && item.productUrl ? '#0563c1' : undefined,
+        link: columnIndex === 1 ? item.productUrl : undefined,
       });
       x += columns[columnIndex];
     });
@@ -352,10 +378,10 @@ async function writeQuotationPdf(quote) {
       y = drawItemsHeader(doc, left, y, columns);
     }
     let x = left;
-    const values = [String(index + 1), '', '', '', '', '', ''];
+    const values = [String(index + 1), '', '', '', '', '', '', ''];
     values.forEach((value, columnIndex) => {
       drawCell(doc, x, y, columns[columnIndex], rowHeight, value, {
-        align: columnIndex === 2 ? 'left' : 'center',
+        align: columnIndex === 3 ? 'left' : 'center',
         fontSize: 7.5,
       });
       x += columns[columnIndex];
