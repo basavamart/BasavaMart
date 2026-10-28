@@ -54,6 +54,7 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/members', require('./routes/members'));
 app.use('/api/basket', require('./routes/basket'));
 app.use('/api/ads', require('./routes/ads'));
+app.use('/api/external-documents', require('./routes/externalDocuments'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/vendors', require('./routes/vendors'));
 app.use('/api/payment', require('./routes/payment'));
